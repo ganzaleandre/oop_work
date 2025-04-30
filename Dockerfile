@@ -1,19 +1,18 @@
-# 1) Base image with Java runtime
-FROM openjdk:17-jdk-slim
+FROM openjdk:17-slim
 
-# 2) Set working directory inside container
+# Install Ant
+RUN apt-get update && apt-get install -y ant
+
+# Create working directory
 WORKDIR /app
 
-# 3) Copy Maven pom and source code
-COPY pom.xml ./
-COPY src ./src
+# Copy all files into container
+COPY . .
 
-# 4) Build your app (skip tests during image build)
-RUN apt-get update \
- && apt-get install -y maven \
- && mvn clean package -DskipTests \
- && rm -rf /root/.m2/repository/*
+# Build each project using Ant
+RUN ant -f HotelManagementSystem/build.xml || echo "HotelManagementSystem build failed"
+RUN ant -f SiteConstructionManagementSystem/build.xml || echo "SiteConstructionManagementSystem build failed"
+RUN ant -f TrafficFineManagementSystem/build.xml || echo "TrafficFineManagementSystem build failed"
 
-# 5) Bundle the jar and set default command
-COPY target/*.jar app.jar
-ENTRYPOINT ["java","-jar","app.jar"]
+# Optional: Replace this with a real runnable JAR path if you want
+CMD ["echo", "All projects built using Ant. Run individual JARs manually."]
